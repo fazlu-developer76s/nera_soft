@@ -267,7 +267,6 @@ function serverIPs(){
     const networkInterfaces = os.networkInterfaces();
     const addresses = [];
 
-
     for (const interfaceName in networkInterfaces) {
         for (const iface of networkInterfaces[interfaceName]) {
             if (iface.family === 'IPv4' && !iface.internal) {
