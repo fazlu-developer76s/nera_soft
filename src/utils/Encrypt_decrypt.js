@@ -15,6 +15,7 @@ function decrypt(encryptedText) {
     const encryptedData1 = encryptedText;
     const bytes = CryptoJS.AES.decrypt(encryptedData1, secretKey);
     const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+    return decryptedData;
 }
 
 export { encrypt, decrypt};

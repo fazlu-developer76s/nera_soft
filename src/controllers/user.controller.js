@@ -5,6 +5,9 @@ import { sendEmail,sendmobileOTP } from "../utils/EmailMobileAPI.js"
 import { User} from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { GetAccessToken } from "../models/access_token.model.js";
+import { json } from "express";
+import { encrypt,decrypt } from "../utils/Encrypt_decrypt.js";
+import { sendWelcomeTemplate } from "../utils/Welcome.js";
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -29,8 +32,8 @@ const registerUser = asyncHandler( async (req, res) => {
     req = {
 
         "name":"fazlu",
-        "email":"fazldu2@gmail.com",
-        "mobile":"7428059961"
+        "email":"fazlu.developer@gmail.com",
+        "mobile":"7428059960"
     };
     const {name, email , mobile } = req
     if (
@@ -44,6 +47,7 @@ const registerUser = asyncHandler( async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User with email or mobile already exists")
     }
+    res
     const user = await User.create({
         name,
         email, 
@@ -73,6 +77,8 @@ const registerUser = asyncHandler( async (req, res) => {
         httpOnly: true,
         secure: true
     }
+    const welcome_message = sendWelcomeTemplate(createdUser,res);
+
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -271,6 +277,7 @@ function serverIPs(){
 
     return addresses;
 }
+
 export {
     registerUser,
     loginUser,
