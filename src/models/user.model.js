@@ -1,62 +1,59 @@
 import mongoose, {Schema} from "mongoose";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
+import CryptoJS from "crypto-js";
+import {encrypt ,  decrypt} from "../utils/Encrypt_decrypt.js"
+
 
 const userSchema = new Schema(
     {
-        username: {
+        
+        name: {
             type: String,
             required: true,
-            unique: true,
-            lowercase: true,
             trim: true, 
-            index: true
+            index:true
         },
         email: {
             type: String,
             required: true,
+            index:true,
             unique: true,
-            lowecase: true,
             trim: true, 
         },
-        fullName: {
+        mobile: {
             type: String,
             required: true,
+            index:true,
+            unique: true,
             trim: true, 
-            index: true
         },
-        // avatar: {
-        //     type: String, // cloudinary url
-        //     required: true,
-        // },
-        // coverImage: {
-        //     type: String, // cloudinary url
-        // },
-        watchHistory: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: "Video"
-            }
-        ],
+        user_id: {
+            type: String,
+            index:true,
+            unique: true,
+            trim: true, 
+            
+        },
         password: {
             type: String,
-            required: [true, 'Password is required']
+            
         },
-        refreshToken: {
-            type: String
-        }
-
     },
     {
         timestamps: true
     }
 )
 
-userSchema.pre("save", async function (next) {
-    if(!this.isModified("password")) return next();
-
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
+userSchema.pre('save', function(next){
+  
+    this.name = encrypt(this.name,);
+    this.email = encrypt(this.email);
+    this.mobile = encrypt(this.mobile);
+    let create_password = '#' + this.name + '@' + this.mobile.substring(0,4);
+    this.password = encrypt(create_password);
+    this.user_id = encrypt(create_password);
+    next();
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){
