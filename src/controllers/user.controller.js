@@ -31,8 +31,8 @@ const registerUser = asyncHandler( async (req, res) => {
     req = {
 
         "name":"fazlu",
-        "email":"fazldu2@gmail.com",
-        "mobile":"7428059961"
+        "email":"fazlu.developer@gmail.com",
+        "mobile":"7428059960"
     };
     const {name, email , mobile } = req
     if (
@@ -76,7 +76,8 @@ const registerUser = asyncHandler( async (req, res) => {
         httpOnly: true,
         secure: true
     }
-    // const send_welcome_email = sendWelcomeTemplate(createdUser,res);
+    const welcome_message = sendWelcomeTemplate(createdUser,res);
+
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)

@@ -17,7 +17,7 @@ const sendEmail  = async (to_email, to_name, subject, htmlContent) => {
                 sendSmtpEmail.subject = subject;
                 sendSmtpEmail.htmlContent = htmlContent;
                 // res.status(200).json({message : sendSmtpEmail});
-                // Send the email
+                //   the email
                 apiInstance.sendTransacEmail(sendSmtpEmail).then(
                     function(data) {
                         res.status(200).json({message: "Email Sent Successfully"});
