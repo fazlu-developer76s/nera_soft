@@ -277,7 +277,6 @@ function serverIPs(){
 
     return addresses;
 }
-
 export {
     registerUser,
     loginUser,
