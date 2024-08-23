@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
+import os from 'os';
 import { sendEmail,sendmobileOTP } from "../utils/EmailMobileAPI.js"
 import { User} from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -256,7 +257,20 @@ function getRandomFourDigit() {
     const re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     return re.test(email)
 };
+function serverIPs(){
+    const networkInterfaces = os.networkInterfaces();
+    const addresses = [];
 
+    for (const interfaceName in networkInterfaces) {
+        for (const iface of networkInterfaces[interfaceName]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                addresses.push(iface.address);
+            }
+        }
+    }
+
+    return addresses;
+}
 export {
     registerUser,
     loginUser,
