@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
+import { verifyJWT } from "./middlewares/auth.middleware.js"
 
 const app = express()
 
@@ -25,5 +26,11 @@ import ipRouter from "./routes/ip.routes.js";
 app.use("/api/v1/ip", ipRouter)
 
 app.use("/api/v1/users", userRouter)
+
+
+app.get("/dashboard", verifyJWT ,function(req, res) {
+    // const cookies = req.cookies;
+    // res.json(cookies);
+});
 
 export { app }

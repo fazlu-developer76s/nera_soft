@@ -3,6 +3,9 @@ import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { GetAccessToken } from "../models/access_token.model.js";
+import { json } from "express";
+import { encrypt,decrypt } from "../utils/Encrypt_decrypt.js";
+import { sendWelcomeTemplate } from "../utils/Welcome.js";
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -42,6 +45,7 @@ const registerUser = asyncHandler( async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User with email or mobile already exists")
     }
+    res
     const user = await User.create({
         name,
         email, 
@@ -71,6 +75,7 @@ const registerUser = asyncHandler( async (req, res) => {
         httpOnly: true,
         secure: true
     }
+    // const send_welcome_email = sendWelcomeTemplate(createdUser,res);
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -175,6 +180,7 @@ const logoutUser = asyncHandler(async(req, res) => {
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logged Out"))
 })
+
 
 
 export {

@@ -33,10 +33,21 @@ const userSchema = new Schema(
             index:true,
             unique: true,
             trim: true, 
+            // required:true
             
         },
         password: {
             type: String,
+            index:true,
+            // required: true,
+            
+        },
+        security_pin: {
+            type: String,
+            default:'0124',
+            index :true,
+            // trim: true
+
             
         },
     },
