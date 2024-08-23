@@ -54,4 +54,7 @@ const sendmobileOTP = async (mobile_no,otp,name) => {
     }
 }
 
+
+
+
 export { sendEmail, sendmobileOTP }
