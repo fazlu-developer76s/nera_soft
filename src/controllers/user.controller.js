@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
+import { sendEmail,sendmobileOTP } from "../utils/EmailMobileAPI.js"
 import { User} from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { GetAccessToken } from "../models/access_token.model.js";
@@ -181,10 +182,77 @@ const logoutUser = asyncHandler(async(req, res) => {
     .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
+const sendotpRequest = asyncHandler(async(req, res) => {
+    try {
+        const type  = req.body.type;
+        const name = req.body.name;
+        if(type == 'Email') {
+        const email_req = req.body.email;
+        res.status(200).json({message : validateEmail(email_req)});
+        if(email_req)
+            {
+                let randomFourDigit = getRandomFourDigit();
+                const htmlContent = '<html><head></head><body><h1>Your OTP is ' + randomFourDigit + '</h1></body></html>';
+                const subject = "OTP for Email verification - Nera Soft";
+                 if(sendEmail(email_req, name, subject, htmlContent)){
+                 return res.status(201).json(new ApiResponse(200, randomFourDigit,"OK"));
+                 }else{
+                 return res.status(202).json(new ApiError(500, "OTP on email not sent. Please try again"));
+                 }
+            }
+
+        }
+        else if(type == 'Mobile') {
+            const mobile = req.body.mobile;
+            const name  = req.body.name;
+            if(typeof(mobile)!='number')
+            {
+                return res.status(202).json(new ApiError(500, mobile,`Invalid Mobile No ${mobile}. Mobile should be number`));
+            }
+            else
+            {
+        if(mobile.toString().length==10 && typeof(mobile)=='number')
+        {
+            
+    
+            try {
+                let randomFourDigit = getRandomFourDigit();
+                sendmobileOTP(mobile, randomFourDigit,name);
+                return res.status(200).json(new ApiResponse(200, randomFourDigit,`OTP Send to  Mobile No ${mobile}`));
+              } catch (error) {
+                return res.status(202).json(new ApiError(500, mobile, error));
+
+              }
+            }
+            else
+            {
+                return res.status(203).json(new ApiError(500, mobile,`Invalid Mobile No ${mobile}. Mobile should be 10 digit`));
+
+        
+            }
+          }
+        }
+
+    } catch (error) {
+        throw new ApiError(500, error.message);
+        
+    }
+})
+
+function getRandomFourDigit() {
+    return Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+  }
+
+
+  let  validateEmail = function(email) {
+    var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    return re.test(email)
+};
 
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    sendotpRequest
 }
