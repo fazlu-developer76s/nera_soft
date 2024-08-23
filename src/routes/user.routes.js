@@ -31,7 +31,7 @@ const router = Router()
 //     ]),
 //     registerUser
 //     )
-router.route("/register").post(registerUser)
+router.route("/register").get(registerUser)
 router.route("/login").post(loginUser)
 
 //secured routes
