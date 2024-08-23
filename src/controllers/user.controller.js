@@ -183,9 +183,18 @@ const sendotpRequest = asyncHandler(async(req, res) => {
         const name = req.body.name;
         if(type == 'Email') {
         const email_req = req.body.email;
-        res.status(200).json({message : validateEmail(email_req)});
+        if(!req.body.email)
+        {
+            return res.status(202).json(new ApiError(500, req.body , `Email Field Not Found`));  
+        }
+        if(validateEmail(email_req)==false)
+        {
+            return res.status(202).json(new ApiError(500, req.body ,`Invalid Email Id ${email_req}. Please Enter Valid Email Id`));
+
+        }
         if(email_req)
             {
+                
                 let randomFourDigit = getRandomFourDigit();
                 const htmlContent = '<html><head></head><body><h1>Your OTP is ' + randomFourDigit + '</h1></body></html>';
                 const subject = "OTP for Email verification - Nera Soft";
@@ -198,6 +207,10 @@ const sendotpRequest = asyncHandler(async(req, res) => {
 
         }
         else if(type == 'Mobile') {
+            if(!req.body.mobile)
+                {
+                    return res.status(202).json(new ApiError(500, req.body , `Mobile Field Not Found`));  
+                }
             const mobile = req.body.mobile;
             const name  = req.body.name;
             if(typeof(mobile)!='number')
@@ -239,8 +252,8 @@ function getRandomFourDigit() {
   }
 
 
-  let  validateEmail = function(email) {
-    var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  function  validateEmail(email) {
+    const re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     return re.test(email)
 };
 
