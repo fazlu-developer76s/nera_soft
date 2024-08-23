@@ -77,7 +77,7 @@ const registerUser = asyncHandler( async (req, res) => {
         httpOnly: true,
         secure: true
     }
-    const welcome_message = sendWelcomeTemplate(createdUser,res);
+    // const welcome_message = sendWelcomeTemplate(createdUser,res);
 
     return res
     .status(200)

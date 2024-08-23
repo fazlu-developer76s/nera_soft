@@ -147,8 +147,8 @@ let randomFourDigit = '';
 const htmlContent = message;
 const subject = "User Register Successfully";
     if(sendEmail(email_req, name, subject, htmlContent)){
-        return res.status(201).json(new ApiResponse(200, randomFourDigit,"OK"));
-
+        // return res.status(201).json(new ApiResponse(200, randomFourDigit,"OK"));
+        return true;
     }else{
     return res.status(202).json(new ApiError(500, "OTP on email not sent. Please try again"));
     }
