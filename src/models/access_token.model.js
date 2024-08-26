@@ -16,7 +16,8 @@ const accessTokenSchema = new Schema({
     token_status: {
         type: Boolean, // Corrected type from 'boolean' to Boolean
         required: true,
-        default: true
+        default: true,
+        index: true
     }
 }, {
     timestamps: true,

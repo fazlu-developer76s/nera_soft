@@ -1,21 +1,24 @@
 import { decrypt } from '../utils/Encrypt_decrypt.js';
-import { sendEmail } from '../utils/EmailMobileAPI.js';
-import { ApiResponse } from "../utils/ApiResponse.js";
+import SibApiV3Sdk from 'sib-api-v3-sdk';
+var defaultClient = SibApiV3Sdk.ApiClient.instance;
+const sendWelcomeTemplate  = async (User,res) => {
+   
+    const sender_name = "Nera Soft";
+    const sender_email = "amit.developer2024@gmail.com";
 
-
-
-function sendWelcomeTemplate(User,res){
-    let user_id = decrypt(User.user_id);
-    let email_req = decrypt(User.email);
-    let name = decrypt(User.name);
-    let password = decrypt(User.password);
-    let security_pin = decrypt(User.security_pin);
-    // let user_id = "fazlu23322";
-    // let email_req = "fazlu.developer@gmail.com";
-    // let name = "fazlu rehman";
-    // let password = "fazlu@123";
-    // let security_pin = "12345";
-    let message = `let htmlContent = '<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><meta name="viewport"content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>companyName Welcome Registration E-mail</title></head><body style="-webkit-box-sizing: border-box;box-sizing: border-box;margin: 0 auto;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;height: 100% !important;width: 100% !important;"><table id="bodyTable"style="-webkit-box-sizing: border-box;box-sizing: border-box;width: 100% !important;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin: 0 auto;padding: 0;background-color: #f4f6f9;font-family: sans-serif;height: 100% !important;">
+    let user_id = "fazlu@123";
+    let to_email = "fazlu.developer@gmail.com";
+    let to_name = "dev sharma";
+    let password = "dev@123";
+    let security_pin = "12345";
+    let subject ="Registerd Successfully";
+    // let user_id = decrypt(User.user_id);
+    // return res.json(user_id);
+    // let email_req = decrypt(User.email);
+    // let name = decrypt(User.name);
+    // let password = decrypt(User.password);
+    // let security_pin = decrypt(User.security_pin);
+    let message = `<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><meta name="viewport"content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>companyName Welcome Registration E-mail</title></head><body style="-webkit-box-sizing: border-box;box-sizing: border-box;margin: 0 auto;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;height: 100% !important;width: 100% !important;"><table id="bodyTable"style="-webkit-box-sizing: border-box;box-sizing: border-box;width: 100% !important;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin: 0 auto;padding: 0;background-color: #f4f6f9;font-family: sans-serif;height: 100% !important;">
     <tr style="-webkit-box-sizing: border-box;box-sizing: border-box;">
         <td style="-webkit-box-sizing: border-box;box-sizing: border-box;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
             <table id="content"
@@ -79,13 +82,13 @@ function sendWelcomeTemplate(User,res){
                                            style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;font-size: 13px;">
                                             Name:</p>
                                         <p style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                                            <strong style="-webkit-box-sizing: border-box;box-sizing: border-box;">${name}</strong>
+                                            <strong style="-webkit-box-sizing: border-box;box-sizing: border-box;">${to_name}</strong>
                                         </p>
                                         <p class="username"
                                            style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;font-size: 13px;">
                                             Email:</p>
                                         <p style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                                            <strong style="-webkit-box-sizing: border-box;box-sizing: border-box;">${email_req}</strong>
+                                            <strong style="-webkit-box-sizing: border-box;box-sizing: border-box;">${to_email}</strong>
                                         </p>
                                         <p class="username"
                                            style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;font-size: 13px;">
@@ -137,21 +140,48 @@ function sendWelcomeTemplate(User,res){
                                 </td>
                             </tr>
                         </table>
-                     
-                    
                        
 </body>
 </html>`;
-
-let randomFourDigit = '';
-const htmlContent = message;
-const subject = "User Register Successfully";
-    if(sendEmail(email_req, name, subject, htmlContent)){
-        // return res.status(201).json(new ApiResponse(200, randomFourDigit,"OK"));
-        return true;
-    }else{
-    return res.status(202).json(new ApiError(500, "OTP on email not sent. Please try again"));
+    try {
+        if(to_email)
+            {
+                var apiKey = defaultClient.authentications['api-key'];
+                apiKey.apiKey = process.env.BREVO_API_KEY;
+                
+                let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+                let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+                sendSmtpEmail.to = [{ 'email': to_email, 'name': to_name}];
+                sendSmtpEmail.sender = { 'name': sender_name, 'email': sender_email };
+                sendSmtpEmail.subject = subject;
+                sendSmtpEmail.htmlContent = message;
+                // res.status(200).json({message : sendSmtpEmail});
+                //   the email
+                apiInstance.sendTransacEmail(sendSmtpEmail).then(
+                    function(data) {
+                        return true;
+                        res.status(200).json({message: "Email Sent Successfully"});
+    
+                    },
+                    function(error) {
+                        res.status(500).json({message: error});
+    
+                    }
+                );
+            }
+            else
+            {
+                res.status(200).json({message: "Invalid Email"});
+            }
+    } catch (error) {
+        res.status(500).json({message: error.message});
     }
-        
-   }
-export  { sendWelcomeTemplate };
+}
+
+
+
+
+
+export { sendWelcomeTemplate }
+
+

@@ -40,32 +40,49 @@ const userSchema = new Schema(
             type: String,
             index:true,
             // required: true,
-            
+            // 
         },
         security_pin: {
             type: String,
             default:'0124',
             index :true,
-            // trim: true
-
-            
         },
+        type:{
+            type: String,
+            default:'Individual',
+            index :true,
+        }
     },
     {
         timestamps: true
     }
 )
 
-userSchema.pre('save', function(next){
-  
-    this.name = encrypt(this.name,);
-    this.email = encrypt(this.email);
-    this.mobile = encrypt(this.mobile);
-    let create_password = '#' + this.name + '@' + this.mobile.substring(0,4);
-    this.password = encrypt(create_password);
-    this.user_id = encrypt(create_password);
+userSchema.pre('save', function(next) {
+    // Only encrypt fields if they have been modified
+    if (this.isModified('name')) {
+        this.name = encrypt(this.name);
+    }
+    
+    if (this.isModified('email')) {
+        this.email = encrypt(this.email);
+        console.log("Encrypted email:", this.email);
+    }
+    
+    if (this.isModified('mobile')) {
+        this.mobile = encrypt(this.mobile);
+    }
+    
+    // Only generate password and user_id if relevant fields are modified
+    if (this.isModified('name') || this.isModified('mobile')) {
+        let create_password = '#' + this.name + '@' + this.mobile.substring(0, 4);
+        this.password = encrypt(create_password);
+        this.user_id = encrypt(create_password);
+    }
+
     next();
-})
+});
+
 
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password)
@@ -75,9 +92,6 @@ userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
         {
             _id: this._id,
-            email: this.email,
-            username: this.username,
-            fullName: this.fullName
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
@@ -89,7 +103,9 @@ userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
          {
             _id: this._id,
-            
+            name: this.name,
+            email: this.email,
+            user_id: this.user_id,
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
