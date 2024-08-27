@@ -68,16 +68,15 @@ const userSchema = new Schema(
 userSchema.pre('save', function(next) {
 
     if (this.isModified('name')) {
-        this.name = encrypt(this.name);
+        this.name = this.name;
     }
     
     if (this.isModified('email')) {
-        this.email = encrypt(this.email);
-        console.log("Encrypted email:", this.email);
+        this.email = this.email;
     }
     
     if (this.isModified('mobile')) {
-        this.mobile = encrypt(this.mobile);
+        this.mobile = this.mobile;
     }
     if (this.isModified('user_id')) {
         this.user_id = encrypt(this.user_id);
@@ -92,7 +91,7 @@ userSchema.pre('save', function(next) {
         this.status = encrypt(this.status);
     }
     if (this.isModified('type')) {
-        this.type = encrypt(this.type);
+        this.type = this.type;
     }
     next();
 });
