@@ -34,6 +34,7 @@ const genRateRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res) => {
+
     const { name, email, mobile, type, email_verify, mobile_verify } = req.body;
 
     if ([name, email, mobile, type].some((field) => field?.trim() === "")) {
