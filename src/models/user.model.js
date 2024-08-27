@@ -33,23 +33,30 @@ const userSchema = new Schema(
             index:true,
             unique: true,
             trim: true, 
-            // required:true
+            required:true
             
         },
         password: {
             type: String,
             index:true,
-            // required: true,
-            // 
+            required: true,
+        
         },
         security_pin: {
             type: String,
-            default:'0124',
+            // default:'0124',
             index :true,
+            required: true
         },
         type:{
             type: String,
-            default:'Individual',
+            // default:'Individual',
+            index :true,
+            required: true
+        },
+        status:{
+            type:String,
+            // default:false,
             index :true,
         }
     },
@@ -59,7 +66,7 @@ const userSchema = new Schema(
 )
 
 userSchema.pre('save', function(next) {
-    // Only encrypt fields if they have been modified
+
     if (this.isModified('name')) {
         this.name = encrypt(this.name);
     }
@@ -72,21 +79,25 @@ userSchema.pre('save', function(next) {
     if (this.isModified('mobile')) {
         this.mobile = encrypt(this.mobile);
     }
-    
-    // Only generate password and user_id if relevant fields are modified
-    if (this.isModified('name') || this.isModified('mobile')) {
-        let create_password = '#' + this.name + '@' + this.mobile.substring(0, 4);
-        this.password = encrypt(create_password);
-        this.user_id = encrypt(create_password);
+    if (this.isModified('user_id')) {
+        this.user_id = encrypt(this.user_id);
     }
-
+    if (this.isModified('password')) {
+        this.password = encrypt(this.password);
+    }
+    if (this.isModified('security_pin')) {
+        this.security_pin = encrypt(this.security_pin);
+    }
+    if (this.isModified('status')) {
+        this.status = encrypt(this.status);
+    }
+    if (this.isModified('type')) {
+        this.type = encrypt(this.type);
+    }
     next();
 });
 
 
-userSchema.methods.isPasswordCorrect = async function(password){
-    return await bcrypt.compare(password, this.password)
-}
 
 userSchema.methods.generateAccessToken = function(){
     return jwt.sign(

@@ -11,12 +11,10 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router()
 
-router.route("/register").get(registerUser)
-router.route("/login").get(loginUser)
-router.route("/genrate_token").get(verifyJWT,genRateLoginToken)
+router.route("/register").post(registerUser)
+router.route("/login").post(loginUser)
+router.route("/genrate_token").post(verifyJWT,genRateLoginToken)
 router.route("/get-otp").post(sendotpRequest)
-
-//secured routes
 router.route("/logout").post(verifyJWT,  logoutUser)
 
 export default router

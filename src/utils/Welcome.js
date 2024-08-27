@@ -2,22 +2,15 @@ import { decrypt } from '../utils/Encrypt_decrypt.js';
 import SibApiV3Sdk from 'sib-api-v3-sdk';
 var defaultClient = SibApiV3Sdk.ApiClient.instance;
 const sendWelcomeTemplate  = async (User,res) => {
-   
     const sender_name = "Nera Soft";
     const sender_email = "amit.developer2024@gmail.com";
 
-    let user_id = "fazlu@123";
-    let to_email = "fazlu.developer@gmail.com";
-    let to_name = "dev sharma";
-    let password = "dev@123";
-    let security_pin = "12345";
-    let subject ="Registerd Successfully";
-    // let user_id = decrypt(User.user_id);
-    // return res.json(user_id);
-    // let email_req = decrypt(User.email);
-    // let name = decrypt(User.name);
-    // let password = decrypt(User.password);
-    // let security_pin = decrypt(User.security_pin);
+    let user_id = decrypt(User.user_id);
+    let to_email = decrypt(User.email);
+    let to_name = decrypt(User.name);
+    let security_pin = decrypt(User.security_pin);
+    let password = decrypt(User.password);
+
     let message = `<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><meta name="viewport"content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>companyName Welcome Registration E-mail</title></head><body style="-webkit-box-sizing: border-box;box-sizing: border-box;margin: 0 auto;padding: 0;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;height: 100% !important;width: 100% !important;"><table id="bodyTable"style="-webkit-box-sizing: border-box;box-sizing: border-box;width: 100% !important;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin: 0 auto;padding: 0;background-color: #f4f6f9;font-family: sans-serif;height: 100% !important;">
     <tr style="-webkit-box-sizing: border-box;box-sizing: border-box;">
         <td style="-webkit-box-sizing: border-box;box-sizing: border-box;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
@@ -98,7 +91,7 @@ const sendWelcomeTemplate  = async (User,res) => {
                                         </p>
                                         <p class="username"
                                            style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;font-size: 13px;">
-                                            Password</p>
+                                            password</p>
                                         <p style="-webkit-box-sizing: border-box;box-sizing: border-box;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
                                             <strong style="-webkit-box-sizing: border-box;box-sizing: border-box;">${password}</strong>
                                         </p>
@@ -146,6 +139,7 @@ const sendWelcomeTemplate  = async (User,res) => {
     try {
         if(to_email)
             {
+                
                 var apiKey = defaultClient.authentications['api-key'];
                 apiKey.apiKey = process.env.BREVO_API_KEY;
                 
@@ -153,13 +147,12 @@ const sendWelcomeTemplate  = async (User,res) => {
                 let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
                 sendSmtpEmail.to = [{ 'email': to_email, 'name': to_name}];
                 sendSmtpEmail.sender = { 'name': sender_name, 'email': sender_email };
-                sendSmtpEmail.subject = subject;
+                sendSmtpEmail.subject = "Register User Successfully";
                 sendSmtpEmail.htmlContent = message;
                 // res.status(200).json({message : sendSmtpEmail});
                 //   the email
                 apiInstance.sendTransacEmail(sendSmtpEmail).then(
                     function(data) {
-                        return true;
                         res.status(200).json({message: "Email Sent Successfully"});
     
                     },

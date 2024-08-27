@@ -34,25 +34,16 @@ const genRateRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res) => {
-    req =
-    {
-
-        "name": "fazlu",
-        "email": "fazlu.developer@gmail.com",
-        "mobile": "7428059961"
-    };
-    let type = "Individual";
-    let email_verify = true;
-    let mobile_verify = true;
-    const { name, email, mobile } = req
+    
+    const { name, email, mobile, type , email_verify , mobile_verify } = req.body;
 
     if (
-        [name, email, mobile].some((field) => field?.trim() === "")
+        [name, email, mobile , type].some((field) => field?.trim() === "")
     ) {
-        const missingFields = [name, email, mobile]
+        const missingFields = [name, email, mobile, type]
             .map((field, index) => {
                 if (field?.trim() === "") {
-                    return ["Name", "Email", "Mobile"][index];
+                    return ["Name", "Email", "Mobile", "Type"][index];
                 }
             })
             .filter(Boolean)
@@ -62,6 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
             : "All fields are required";
         res.json(new ApiError(401, req.body, errorMessage));
     }
+
     // Email regex validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -73,25 +65,36 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!mobileRegex.test(mobile)) {
         return res.json(new ApiError(401, req.body, "Mobile number must be 10 digits long"));
     }
-
-    const existedUser = await User.findOne({
-        $or: [{ email: encrypt(email) }, { mobile: encrypt(mobile) }]
+    const exits_email = email;
+    const exits_mobile = mobile;
+    const allUser = await User.find();
+    const get_exists_user = allUser.map((val)=>{
+        if(decrypt(val.email)==exits_email){
+          return res.json(new ApiError(401, req.body, "User with email or mobile already exists"));
+        }
+        if(decrypt(val.mobile)==exits_mobile){
+          return res.json(new ApiError(401, req.body, "User with email or mobile already exists"));
+        }
     })
-
-    if (existedUser) {
-        return res.json(new ApiError(401, req.body, "User with email or mobile already exists"));
-    }
+    const create_user_id = '#' + name + '@' + mobile.substring(0, 4);
+    const create_password = '#' + name + '@123' + mobile.substring(0, 4);
+    const user_id = create_user_id;
+    const password = create_password;
+    const security_pin = getRandomFourDigit();
+    const status = "true";
     const user = await User.create({
         name,
         email,
         mobile,
         type,
+        user_id,
+        password,
+        security_pin,
+        status
     })
+    
     if (email_verify == true && mobile_verify == true) {
-        const createdUser = await User.findById(user._id).select(
-            "-password"
-        )
-
+        const createdUser = await User.findById(user._id)
         if (!createdUser) {
             return res.json(new ApiError(500, req.body, "Something went wrong while registering the user"));
         }
@@ -112,9 +115,8 @@ const registerUser = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true
         }
-
-        const welcome_message = sendWelcomeTemplate(createdUser, res);
-
+        const welcome_message = sendWelcomeTemplate(createdUser,res);
+        
         return res
             .status(200)
             .cookie("accessToken", accessToken, options)
