@@ -466,11 +466,31 @@ const Expire_link = asyncHandler(async (req, res) => {
     }
 
 });
+
+const  destroyToken = asyncHandler( async (req,res) =>{
+    const { user_id } = req.body;
+    if(!user_id){
+        return res.json(new ApiError(401,req.body,"User ID Not Found"));
+    }
+      try{
+        const destroy_token = await GetAccessToken.updateMany({user_id:user_id},{$set:{token_status:false}});
+        
+        if(destroy_token.modifiedCount == 1){
+          return res.json(new ApiResponse(200,{},"Token Destroyed Successfully"));
+        }else{
+          return res.json(new ApiError(500,{},"Token Not Found"));
+        }
+      }catch (error) {
+        return res.json(new ApiError(500,{},"Error in Token Destroy"));
+      }
+});
+
 export {
     registerUser,
     loginUser,
     logoutUser,
     sendotpRequest,
     genRateLoginToken,
-    Expire_link
+    Expire_link,
+    destroyToken
 }
