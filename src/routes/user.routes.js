@@ -4,7 +4,8 @@ import {
     logoutUser, 
     registerUser,
     sendotpRequest,
-    genRateLoginToken
+    genRateLoginToken,
+    Expire_link
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -13,8 +14,9 @@ const router = Router()
 
 router.route("/register").post(registerUser)
 router.route("/login").post(loginUser)
-router.route("/genrate-refresh-token").post(genRateLoginToken)
+router.route("/genrate-refresh-token").post(verifyJWT,genRateLoginToken)
 router.route("/get-otp").post(sendotpRequest)
+router.route("/expire-link").post(Expire_link)
 router.route("/logout").post(verifyJWT,  logoutUser)
 
 export default router

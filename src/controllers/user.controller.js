@@ -7,7 +7,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { GetAccessToken } from "../models/access_token.model.js";
 import { json } from "express";
 import { encrypt, decrypt } from "../utils/Encrypt_decrypt.js";
-import { sendWelcomeTemplate,sendLoginInformation } from "../utils/Welcome.js";
+import { sendWelcomeTemplate, sendLoginInformation } from "../utils/Welcome.js";
+import { Expire_link_schema } from "../models/expire_link.model.js";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -19,18 +20,19 @@ const generateAccessAndRefereshTokens = async (userId) => {
         await user.save({ validateBeforeSave: false })
         return { accessToken, refreshToken }
     } catch (error) {
-        res.json(new ApiError(500, user, "Something went wrong while generating referesh and access token"));
+        throw new Error(error.message)
+        // res.json(new ApiError(500, user, "Something went wrong while generating referesh and access token"));
     }
 }
 
 const genRateRefreshToken = async (userId) => {
     try {
-        const user = await User.findById(userId)        
+        const user = await User.findById(userId)
         const refreshToken = user.generateRefreshToken()
         return { refreshToken }
     } catch (error) {
         res.json(new ApiError(500, user, "Can't Genrate Refresh Token"));
-    } 
+    }
 }
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -131,11 +133,11 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
 const loginUser = asyncHandler(async (req, res) => {
-    
+
     const { email, mobile, user_id, password, email_verify, mobile_verify, type } = req.body;
-   
+
     // Check if password is provided
-    if(decrypt(type) !="google" || decrypt(type) !="apple"){
+    if (decrypt(type) != "google" || decrypt(type) != "apple") {
         if (!password || decrypt(password).length <= 8) {
             return res.json(new ApiError(401, req.body, "Password must be at least 8 characters long"));
         }
@@ -152,7 +154,7 @@ const loginUser = asyncHandler(async (req, res) => {
             return res.json(new ApiError(401, req.body, "Invalid email format"));
         }
     }
-    
+
     // Validate mobile if provided
     if (mobile) {
         const mobileRegex = /^\d{10}$/;
@@ -170,31 +172,32 @@ const loginUser = asyncHandler(async (req, res) => {
     const getUser = [];
     if (getAllUser) {
         for (let val of getAllUser) {
-            if(decrypt(type)!="google" || decrypt(type)!="apple") {
+            if (decrypt(type) != "google" || decrypt(type) != "apple") {
                 if ((decrypt(val.email) === decrypt(email) && decrypt(val.password) === decrypt(password)) || (decrypt(val.mobile) === decrypt(mobile) && decrypt(val.password) === decrypt(password)) || (decrypt(val.user_id) === decrypt(user_id) && decrypt(val.password) === decrypt(password))) {
                     getUser.push(val);
                 }
-            }else{
+            } else {
                 if (decrypt(val.email) === decrypt(email)) {
-                    getUser.push(val) ;
+                    getUser.push(val);
                 }
             }
         }
     }
-    if(!getUser) {
+    if (!getUser) {
         return res.json(new ApiError(401, req.body, "Please Check Your Credential "));
     }
 
-
     if (mobile_verify == true && email_verify == true && getUser !== null) {
-        
-        const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(getUser._id)
+
+
+        const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(getUser[0]._id)
+
         if (!accessToken && !refreshToken) {
             return res.json(new ApiError(500, getUser, "Something went wrong while Login the user"))
         }
         const UpdateTokenStatus = await GetAccessToken.updateMany(
-            { user_id: getUser._id }, 
-            { $set: { token_status: false } } 
+            { user_id: getUser[0]._id },
+            { $set: { token_status: false } }
         );
 
         if (UpdateTokenStatus.modifiedCount > 0) {
@@ -204,13 +207,30 @@ const loginUser = asyncHandler(async (req, res) => {
         }
         const saveAccesstoken = await GetAccessToken.create(
             {
-                user_id: getUser._id,
+                user_id: getUser[0]._id,
                 token: accessToken
             }
         );
         if (!saveAccesstoken) {
             res.json(new ApiError(500, accessToken, "Access Token not Save In Db"));
         }
+        const current_date = new Date();
+        const expire_date = new Date(current_date.getTime() + 10 * 60000);
+
+        try {
+            const update_expire_status = await Expire_link_schema.updateMany(
+                { user_id: getUser[0]._id },
+                { $set: { status: false } }
+            );
+            const create_link_data = await Expire_link_schema.create({
+                user_id: getUser[0]._id,
+                expireAt: expire_date,
+            });
+
+        } catch (error) {
+            return res.json(new ApiError(500, current_date, "Expire Link Not Created"));
+        }
+        sendLoginInformation(getUser[0], res);
         const options = {
             httpOnly: true,
             secure: true
@@ -257,51 +277,51 @@ const loginUser = asyncHandler(async (req, res) => {
             .json(new ApiResponse(200, {}, "User logged Out"));
     }
 
-    if(check_access_token.token_status == true && get_access_token != ''){
+    if (check_access_token.token_status == true && get_access_token != '') {
         return res.json(new ApiResponse(200, getUser, "Please Verify Your Security Pin"));
     }
 });
 
-const genRateLoginToken = asyncHandler(async (req,res) => {
-  
-    const { security_pin,user_id } = req.body;
-    if(security_pin !=''){
+const genRateLoginToken = asyncHandler(async (req, res) => {
+
+    const { security_pin, user_id } = req.body;
+    if (security_pin != '') {
         const findUser = await User.findById(user_id);
-        if(!findUser){
-         return res.json(new ApiError(401, req.body, "Envalid User Security Pin"));
+        if (!findUser) {
+            return res.json(new ApiError(401, req.body, "Envalid User Security Pin"));
         }
-      try{
-        if(decrypt(findUser.security_pin) === decrypt(security_pin)){
-    
-            const { refreshToken } = await genRateRefreshToken(findUser._id)
-            if (!refreshToken) {
-                return res.json(new ApiError(500, findUser, "Can't Genrate Refresh Token"));
-            }
-            sendLoginInformation(findUser);
-            const options = {
-                httpOnly: true,
-                secure: true
-            }
-            return res
-                .status(200)
-                .cookie("refreshToken", refreshToken, options)
-                .json(
-                    new ApiResponse(
-                        200,
-                        {
-                            data: findUser, refreshToken
-                        },
-                        "User Login Successfully"
+        try {
+            if (decrypt(findUser.security_pin) === decrypt(security_pin)) {
+
+                const { refreshToken } = await genRateRefreshToken(findUser._id)
+                if (!refreshToken) {
+                    return res.json(new ApiError(500, findUser, "Can't Genrate Refresh Token"));
+                }
+                sendLoginInformation(findUser);
+                const options = {
+                    httpOnly: true,
+                    secure: true
+                }
+                return res
+                    .status(200)
+                    .cookie("refreshToken", refreshToken, options)
+                    .json(
+                        new ApiResponse(
+                            200,
+                            {
+                                data: findUser, refreshToken
+                            },
+                            "User Login Successfully"
+                        )
                     )
-                )
-        }
-        else{
+            }
+            else {
+                return res.json(new ApiError(401, findUser, "Invalid Security Pin"));
+            }
+        } catch (err) {
             return res.json(new ApiError(401, findUser, "Invalid Security Pin"));
         }
-      }catch(err){
-        return res.json(new ApiError(401, findUser, "Invalid Security Pin"));
-      }
-    }else{
+    } else {
         return res.json(new ApiError(401, req.body, "Please Enter Your Security Pin"));
 
     }
@@ -313,17 +333,7 @@ const genRateLoginToken = asyncHandler(async (req,res) => {
 
 
 const logoutUser = asyncHandler(async (req, res) => {
-    await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $unset: {
-                refreshToken: 1 // this removes the field from document
-            }
-        },
-        {
-            new: true
-        }
-    )
+
     const options = {
         httpOnly: true,
         secure: true
@@ -419,10 +429,48 @@ function serverIPs() {
 
     return addresses;
 }
+
+const Expire_link = asyncHandler(async (req, res) => {
+    const { user_id } = req.body;
+    if (!user_id) {
+        return res.json(new ApiError(401, req.body, "User ID Not Found"));
+    }
+    try {
+        const expire_link_data = await Expire_link_schema.findOne({
+            $and: [
+                { user_id: user_id },
+                { status: true }
+            ]
+        });
+
+        if (expire_link_data) {
+
+            const current_date = new Date();
+            const expire_date = new Date(expire_link_data.expireAt);
+            const differenceInMilliseconds = current_date - expire_date;
+            const differenceInMinutes = differenceInMilliseconds / 60000;
+            if (differenceInMinutes <= 10) {
+                return res.json(new ApiResponse(200, current_date, "Link Not Expire"));
+            } else {
+                const update_expire_status = await Expire_link_schema.updateMany(
+                    { user_id: user_id },
+                    { $set: { status: false } }
+                );
+                return res.json(new ApiError(200, current_date, "Link Expired"));
+            }
+        } else {
+            return res.json(new ApiError(500, {}, "Link Expired"));
+        }
+    } catch (error) {
+        return res.json(new ApiError(500, {}, "Link Expired"));
+    }
+
+});
 export {
     registerUser,
     loginUser,
     logoutUser,
     sendotpRequest,
-    genRateLoginToken
+    genRateLoginToken,
+    Expire_link
 }
