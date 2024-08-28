@@ -177,9 +177,14 @@ const sendWelcomeTemplate  = async (User) => {
 }
 
 
+const sendLoginInformation = async (LoginInfo) =>{
+  return true;
+}
 
 
 
-export { sendWelcomeTemplate }
+
+
+export { sendWelcomeTemplate,sendLoginInformation }
 
 

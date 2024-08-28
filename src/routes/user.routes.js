@@ -13,7 +13,7 @@ const router = Router()
 
 router.route("/register").post(registerUser)
 router.route("/login").post(loginUser)
-router.route("/genrate_token").post(verifyJWT,genRateLoginToken)
+router.route("/genrate-refresh-token").post(genRateLoginToken)
 router.route("/get-otp").post(sendotpRequest)
 router.route("/logout").post(verifyJWT,  logoutUser)
 

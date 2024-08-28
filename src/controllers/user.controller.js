@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { GetAccessToken } from "../models/access_token.model.js";
 import { json } from "express";
 import { encrypt, decrypt } from "../utils/Encrypt_decrypt.js";
-import { sendWelcomeTemplate } from "../utils/Welcome.js";
+import { sendWelcomeTemplate,sendLoginInformation } from "../utils/Welcome.js";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -131,46 +131,63 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
 const loginUser = asyncHandler(async (req, res) => {
-    let email_verify = true;
-    let mobile_verify = true;
-    req = {
-        "email": "c2a26c20ce10c0454577558516403abf608dfacbe249d1d4b4088db0c962efa9",
-        "mobile": "73d288f3a673635898449312bb53024c499e78897206406d042091ecbbdf52b2",
-        "user_id": "7de136605e8ea98818c223d99ce66c7420a639c41b5d68f9eb361bca011f8b3b",
-        "password": "7de136605e8ea98818c223d99ce66c7420a639c41b5d68f9eb361bca011f8b3b"
-    };
-
-    const { email, mobile, user_id, password } = req
-    // if (email) {
-    //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    //     if (!emailRegex.test(email)) {
-    //         return res.json(new ApiError(401, req.body, "Invalid email format"));
-    //     }
-    // }
-    // if (mobile) {
-    //     const mobileRegex = /^\d{10}$/;
-    //     if (!mobileRegex.test(mobile)) {
-    //         return res.json(new ApiError(401, req.body, "Mobile number must be 10 digits long"));
-    //     }
-    // }
-    // if (password) {
-    //     if (password.length >= 8) {
-    //         return res.json(new ApiError(401, req.body, "Password  must be 8 digits"));
-    //     }
-    // }
-    // if (user_id) {
-    //     if (user_id.length >= 5 && user_id != '') {
-    //         return res.json(new ApiError(401, req.body, "User Id Field Is Required"));
-    //     }
-    // }
-
-    const getUser = await User.findOne({
-        $or: [{ email: email }, { mobile: mobile }, { password: password }, { user_id: user_id }]
-    });
     
+    const { email, mobile, user_id, password, email_verify, mobile_verify, type } = req.body;
+   
+    // Check if password is provided
+    if(decrypt(type) !="google" || decrypt(type) !="apple"){
+        if (!password || decrypt(password).length <= 8) {
+            return res.json(new ApiError(401, req.body, "Password must be at least 8 characters long"));
+        }
+    }
+
+    // Check if at least one of email, mobile, or user_id is provided
+    if (!email && !mobile && !user_id) {
+        return res.json(new ApiError(401, req.body, "Please provide either an email, mobile number, or user ID"));
+    }
+    // Validate email if provided
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(decrypt(email))) {
+            return res.json(new ApiError(401, req.body, "Invalid email format"));
+        }
+    }
+    
+    // Validate mobile if provided
+    if (mobile) {
+        const mobileRegex = /^\d{10}$/;
+        if (!mobileRegex.test(decrypt(mobile))) {
+            return res.json(new ApiError(401, req.body, "Mobile number must be 10 digits long"));
+        }
+    }
+    // Validate user_id if provided
+    if (user_id) {
+        if (decrypt(user_id).length <= 5) {
+            return res.json(new ApiError(401, req.body, "User ID must be at least 6 characters long"));
+        }
+    }
+    const getAllUser = await User.find();
+    const getUser = [];
+    if (getAllUser) {
+        for (let val of getAllUser) {
+            if(decrypt(type)!="google" || decrypt(type)!="apple") {
+                if ((decrypt(val.email) === decrypt(email) && decrypt(val.password) === decrypt(password)) || (decrypt(val.mobile) === decrypt(mobile) && decrypt(val.password) === decrypt(password)) || (decrypt(val.user_id) === decrypt(user_id) && decrypt(val.password) === decrypt(password))) {
+                    getUser.push(val);
+                }
+            }else{
+                if (decrypt(val.email) === decrypt(email)) {
+                    getUser.push(val) ;
+                }
+            }
+        }
+    }
+    if(!getUser) {
+        return res.json(new ApiError(401, req.body, "Please Check Your Credential "));
+    }
+
+
     if (mobile_verify == true && email_verify == true && getUser !== null) {
         
-
         const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(getUser._id)
         if (!accessToken && !refreshToken) {
             return res.json(new ApiError(500, getUser, "Something went wrong while Login the user"))
@@ -179,8 +196,7 @@ const loginUser = asyncHandler(async (req, res) => {
             { user_id: getUser._id }, 
             { $set: { token_status: false } } 
         );
-        // return res.json({message : getUser._id});
-       
+
         if (UpdateTokenStatus.modifiedCount > 0) {
             console.log(`${UpdateTokenStatus.modifiedCount} records updated.`);
         } else {
@@ -214,8 +230,6 @@ const loginUser = asyncHandler(async (req, res) => {
             )
     }
 
-
-    
     const get_access_token = req.cookies?.accessToken;
     if (!get_access_token) {
         res.json(new ApiError(401, getUser, `Please Verify Your Email And Mobile No`));
@@ -249,20 +263,21 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const genRateLoginToken = asyncHandler(async (req,res) => {
+  
     const { security_pin,user_id } = req.body;
     if(security_pin !=''){
-        const findUser = await GetAccessToken.findOne({
-            $and: [
-                { _id: user_id },
-                { security_pin: "0124" }
-            ]
-        });
+        const findUser = await User.findById(user_id);
+        if(!findUser){
+         return res.json(new ApiError(401, req.body, "Envalid User Security Pin"));
+        }
       try{
-        if(findUser.security_pin == security_pin){
+        if(decrypt(findUser.security_pin) === decrypt(security_pin)){
+    
             const { refreshToken } = await genRateRefreshToken(findUser._id)
             if (!refreshToken) {
                 return res.json(new ApiError(500, findUser, "Can't Genrate Refresh Token"));
             }
+            sendLoginInformation(findUser);
             const options = {
                 httpOnly: true,
                 secure: true
@@ -285,8 +300,10 @@ const genRateLoginToken = asyncHandler(async (req,res) => {
         }
       }catch(err){
         return res.json(new ApiError(401, findUser, "Invalid Security Pin"));
-
       }
+    }else{
+        return res.json(new ApiError(401, req.body, "Please Enter Your Security Pin"));
+
     }
 });
 
@@ -307,15 +324,12 @@ const logoutUser = asyncHandler(async (req, res) => {
             new: true
         }
     )
-
     const options = {
         httpOnly: true,
         secure: true
     }
-
     return res
         .status(200)
-        .clearCookie("accessToken", options)
         .clearCookie("refreshToken", options)
         .json(new ApiResponse(200, {}, "User logged Out"))
 })
