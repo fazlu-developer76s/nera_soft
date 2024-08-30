@@ -25,12 +25,14 @@ app.use(cookieParser())
 import userRouter from './routes/user.routes.js'
 import ipRouter from "./routes/ip.routes.js";
 import StaticRoute from "./routes/static.routes.js"
+import KycProcess from "./routes/kyc.routes.js"
 
 
 //routes declaration
 app.use("/api/v1/ip", ipRouter)
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/",StaticRoute)
+app.use("/api/v1/kyc/",KycProcess);
 
 
 
