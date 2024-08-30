@@ -1,4 +1,4 @@
-import { decrypt } from '../utils/Encrypt_decrypt.js';
+import { decrypt } from './Encrypt_decrypt.js';
 import SibApiV3Sdk from 'sib-api-v3-sdk';
 import express from 'express';
 

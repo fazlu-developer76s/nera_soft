@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const accessTokenSchema = new Schema({
     user_id: {
-        type: String, // Corrected type from 'string' to String
+        type: mongoose.Schema.ObjectId, // Corrected type from 'string' to String
         required: true,
         index: true // Corrected 'indexedDB' to 'index'
     },
@@ -23,4 +23,4 @@ const accessTokenSchema = new Schema({
     timestamps: true,
 });
 
-export const GetAccessToken = mongoose.model("UserAccessToken", accessTokenSchema); // Corrected model name convention
+export const GetAccessToken = mongoose.model("useraccesstokens", accessTokenSchema); // Corrected model name convention

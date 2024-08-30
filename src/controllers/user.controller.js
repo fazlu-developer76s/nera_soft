@@ -36,7 +36,7 @@ const genRateRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res) => {
-
+    
     const { name, email, mobile, type, email_verify, mobile_verify } = req.body;
 
     if ([name, email, mobile, type].some((field) => field?.trim() === "")) {
@@ -69,7 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const exits_email = decrypt(email);
     const exits_mobile = decrypt(mobile);
     const allUser = await User.find();
-
+    
     if (allUser) {
         for (let val of allUser) {
             if (decrypt(val.email) === exits_email || decrypt(val.mobile) === exits_mobile) {
