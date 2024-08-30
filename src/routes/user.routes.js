@@ -8,12 +8,14 @@ import {
     Expire_link,
     destroyToken
 } from "../controllers/user.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT, } from "../middlewares/auth.middleware.js";
+import { kyc_process } from "../controllers/kyc_process.controller.js";
 
 
 const router = Router()
 
 router.route("/register").post(registerUser)
+router.route("/kyc-process").post(verifyJWT, kyc_process)
 router.route("/login").post(loginUser)
 router.route("/genrate-refresh-token").post(verifyJWT,genRateLoginToken)
 router.route("/get-otp").post(sendotpRequest)
