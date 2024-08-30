@@ -94,7 +94,7 @@ const sendWelcomeTemplate = async (User) => {
 }
 
 
-const sendLoginInformation = async (User,res) => {
+const sendLoginInformation = async (User,device_type) => {
     
     const sender_name = "Nera Soft";
     const sender_email = "amit.developer2024@gmail.com";
@@ -131,7 +131,7 @@ const sendLoginInformation = async (User,res) => {
                             <p style="font-size: 16px; margin: 10px 0;"><strong>Location:</strong> Noida 135</p>
                             <p style="font-size: 16px; margin: 10px 0;"><strong>Device Info:</strong> Window 11 </p>
                             <p style="font-size: 16px; margin: 20px 0;">If you did not initiate this login, your account may be at risk. Click the button below to secure your account:</p>
-                            <a href="${User._id}" style="width: 200px; display: inline-block; padding: 12px 20px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; background-color: #99c35c; border-radius: 4px; box-shadow: 0 6px 2px -2px #648732; margin: 20px auto; text-align: center; display: block;">Secure Your Account</a>
+                            <a href="${User._id+device_type}" style="width: 200px; display: inline-block; padding: 12px 20px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; background-color: #99c35c; border-radius: 4px; box-shadow: 0 6px 2px -2px #648732; margin: 20px auto; text-align: center; display: block;">Secure Your Account</a>
                             <p style="font-size: 16px; margin: 20px 0;">To log out and end your current session, click the button below:</p>
                             <a href="#" style="width: 200px; display: inline-block; padding: 12px 20px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; background-color: #ff4d4d; border-radius: 4px; box-shadow: 0 6px 2px -2px #d43f3a; margin: 20px auto; text-align: center; display: block;">Log Out</a>
                             <p style="font-size: 16px; margin: 20px 0;">If you have any questions or need assistance, feel free to contact our support team.</p>

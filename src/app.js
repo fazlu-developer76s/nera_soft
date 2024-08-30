@@ -6,6 +6,7 @@ import { verifyJWT,VerfiyUser } from "./middlewares/auth.middleware.js"
 import { encrypt,decrypt } from "./utils/Encrypt_decrypt.js"
 import { ApiResponse } from "./utils/ApiResponse.js"
 
+
 const app = express()
 app.use(bodyParser.json({limit:'50mb'}))
 app.use(bodyParser.urlencoded({limit:'50mb',extended:true}));

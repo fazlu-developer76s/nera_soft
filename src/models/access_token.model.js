@@ -18,6 +18,11 @@ const accessTokenSchema = new Schema({
         required: true,
         default: true,
         index: true
+    },
+    device_type:{
+        type: String,
+        required: true,
+        index: true
     }
 }, {
     timestamps: true,

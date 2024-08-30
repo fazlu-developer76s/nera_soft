@@ -5,65 +5,48 @@ import { User } from "../models/user.model.js";
 import { GetAccessToken } from "../models/access_token.model.js";
 
 export const verifyJWT = asyncHandler(async(req, res, next) => {
-
     try {
-        
-        const get_access_token = req.cookies?.accessToken;
+        const get_access_token = req.headers.accesstoken
         if(!get_access_token){
-            res.json(new ApiError(401, req.body,`Please Verify Your Email And Mobile No`));
+            return res.json(new ApiError(401, { },`Please Verify Your Email And Mobile No`));
         }
-        
         try{
         jwt.verify(get_access_token,process.env.ACCESS_TOKEN_SECRET);
         }catch(err){
-            res.json(new ApiError(401, req.body,`Please Verify Your Email And Mobile No`));
+            return  res.json(new ApiError(401, { },`Please Verify Your Email And Mobile No`));
         }
         const check_access_token = await GetAccessToken.findOne({
             $and: [
                 { token: get_access_token},
-                { token_status: true }
+                { token_status: true },
+                { device_type:"app"}
             ]
         });
-        
         if(check_access_token.token_status!=true){
-            const options = {
-                httpOnly: true,
-                secure: true
-            }
-            return res
-            .status(200)
-            .clearCookie("accessToken", options)
-            .clearCookie("refreshToken", options)
-            .json(new ApiResponse(200, {}, "User logged Out"))
+            return  res.status(200).json(new ApiError(401, {} ,"Please Verify Your Email And Mobile No"))
+      
         }
         next()
     } catch (error) {
-        const options = {
-            httpOnly: true,
-            secure: true
-        }
-        res.status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options).json(new ApiError(401, error?.message ,"Please Verify Your Email And Mobile No"))
+        return res.status(200).json(new ApiError(401, {error} ,"Please Verify Your Email And Mobile No"))
     }    
 });
 
 
 export const VerfiyUser = asyncHandler(async(req, res, next) => {
     try {
-        const get_refresh_token = req.cookies?.refreshToken;
+        const get_refresh_token = req.headers.refreshtoken;
+        if(!get_refresh_token){
+            return res.json(new ApiError(401, {},`Invalid Refresh Token`));
+        } 
         try{
             jwt.verify(get_refresh_token,process.env.REFRESH_TOKEN_SECRET);
         }catch(err){
-            res.json(new ApiError(401, req.body,`Your Account Is Logout`));
+            res.json(new ApiError(401, req.body,`Invalid Refresh Token`));
            }
-        if(!get_refresh_token){
-            res.json(new ApiError(401, req.body,`Your Account Is Logout`));
-        }
         next()
     } catch (error) {
-    
-        throw new ApiError(401, error?.message , "Invalid access token")
+        throw new ApiError(401, {error} , "Invalid Refresh Token")
     }
     
 })

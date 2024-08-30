@@ -8,7 +8,7 @@ import { json } from "express";
 import { encrypt, decrypt } from "../utils/Encrypt_decrypt.js";
 
 const kyc_process = asyncHandler(async(req, res) => {
-    return res.json(new ApiResponse(200, req.body, "User logged Out"))
+    return res.json(req.body);
  });
 
  export { kyc_process }

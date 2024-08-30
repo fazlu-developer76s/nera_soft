@@ -54,6 +54,11 @@ const userSchema = new Schema(
             index :true,
             required: true
         },
+        device_type:{
+            type: String,
+            index :true,
+            required: true
+        },
         status:{
             type:String,
             // default:false,
@@ -93,6 +98,9 @@ userSchema.pre('save', function(next) {
     if (this.isModified('type')) {
         this.type = this.type;
     }
+    if (this.isModified('device_type')) {
+        this.device_type = this.device_type;
+    }
     next();
 });
 
@@ -102,6 +110,7 @@ userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
         {
             _id: this._id,
+            datetime:new Date()
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
@@ -116,6 +125,7 @@ userSchema.methods.generateRefreshToken = function(){
             name: this.name,
             email: this.email,
             user_id: this.user_id,
+            datetime:new Date()
         },
         process.env.REFRESH_TOKEN_SECRET,
         {

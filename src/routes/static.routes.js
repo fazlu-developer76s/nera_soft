@@ -6,6 +6,6 @@ const router = new Router();
 
 router.route("/encrypt").post(encrypted)
 router.route("/decrypt").post(decrypted)
-router.route("/dashboard",verifyJWT,VerfiyUser).post(dashboard)
+router.route("/dashboard").post(VerfiyUser,dashboard)
 
 export default router
