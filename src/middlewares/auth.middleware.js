@@ -4,49 +4,62 @@ import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js";
 import { GetAccessToken } from "../models/access_token.model.js";
 
-export const verifyJWT = asyncHandler(async(req, res, next) => {
+export const verifyJWT = asyncHandler(async (req, res, next) => {
     try {
         const get_access_token = req.headers.accesstoken
-        if(!get_access_token){
-            return res.json(new ApiError(401, { },`Please Verify Your Email And Mobile No`));
+        if (!get_access_token) {
+            return res.json(new ApiError(401, {}, `Please Verify Your Email And Mobile No`));
         }
-        try{
-        jwt.verify(get_access_token,process.env.ACCESS_TOKEN_SECRET);
-        }catch(err){
-            return  res.json(new ApiError(401, { },`Please Verify Your Email And Mobile No`));
+        try {
+            jwt.verify(get_access_token, process.env.ACCESS_TOKEN_SECRET);
+        } catch (err) {
+            return res.json(new ApiError(401, {}, `Please Verify Your Email And Mobile No`));
         }
         const check_access_token = await GetAccessToken.findOne({
             $and: [
-                { token: get_access_token},
+                { token: get_access_token },
                 { token_status: true },
-                { device_type:"app"}
+                { device_type: "app" }
             ]
         });
-        if(check_access_token.token_status!=true){
-            return  res.status(200).json(new ApiError(401, {} ,"Please Verify Your Email And Mobile No"))
-      
+        if (check_access_token.token_status != true) {
+            return res.status(200).json(new ApiError(401, {}, "Please Verify Your Email And Mobile No"))
+
         }
         next()
     } catch (error) {
-        return res.status(200).json(new ApiError(401, {error} ,"Please Verify Your Email And Mobile No"))
-    }    
+        return res.status(200).json(new ApiError(401, { error }, "Please Verify Your Email And Mobile No"))
+    }
 });
 
 
-export const VerfiyUser = asyncHandler(async(req, res, next) => {
+export const VerfiyUser = asyncHandler(async (req, res, next) => {
     try {
         const get_refresh_token = req.headers.refreshtoken;
-        if(!get_refresh_token){
-            return res.json(new ApiError(401, {},`Invalid Refresh Token`));
-        } 
-        try{
-            jwt.verify(get_refresh_token,process.env.REFRESH_TOKEN_SECRET);
-        }catch(err){
-            res.json(new ApiError(401, req.body,`Invalid Refresh Token`));
-           }
+        if (!get_refresh_token) {
+            return res.json(new ApiError(401, {}, `Invalid Refresh Token`));
+        }
+        try {
+            const payload = jwt.verify(get_refresh_token, process.env.REFRESH_TOKEN_SECRET);
+            const user_id = payload._id
+            const check_access_token = await GetAccessToken.findOne({
+                $and: [
+                    { user_id: user_id },
+                    { token_status: true },
+                    { device_type: "app" }
+                ]
+            });
+            if (check_access_token.token_status != true) {
+                return res.status(200).json(new ApiError(401, {}, "Please Verify Your Email And Mobile No"))
+
+            }
+        } catch (err) {
+            return res.json(new ApiError(401, {}, `Invalid Refresh Token`));
+        }
         next()
     } catch (error) {
-        throw new ApiError(401, {error} , "Invalid Refresh Token")
+        return res.json(new ApiError(401, {}, `Invalid Refresh Token`));
+
     }
-    
+
 })
