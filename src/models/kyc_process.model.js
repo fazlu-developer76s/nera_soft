@@ -1,71 +1,109 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import CryptoJS from "crypto-js";
-import {encrypt ,  decrypt} from "../utils/Encrypt_decrypt.js"
+import { encrypt, decrypt } from "../utils/Encrypt_decrypt.js"
 const KYC_process = new mongoose.Schema({
+
   user_id: {
-    type: String,
     required: true,
     index: true,
     trim: true,
+    // type: mongoose.Schema.ObjectId
+    type: String
   },
-  status: {
+  personal_kyc: {
+    name: { type: String, required: true },
+    father_name: { type: String, required: true },
+    date_of_birth: { type: String, required: true },
+    zip_code: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    country: { type: String, required: true },
+    alt_no: { type: String, default: null },
+    aadhar_no: { type: String, required: true },
+    pan_no: { type: String, required: true },
+    aadhar_docs: { type: String, required: true },
+    aadhar_status: { type: String, required: true, enum: ['rejected', 'verified'], default: 'rejected' },
+    pan_docs: { type: String, required: true },
+    pan_status: { type: String, required: true, enum: ['rejected', 'verified'], default: 'rejected' },
+    bank_name: { type: String, required: true },
+    account_no: { type: String, required: true },
+    ifsc_code: { type: String, required: true },
+    bank_statement: { type: String, required: true },
+    bank_status: { type: String, required: true, enum: ['rejected', 'verified'], default: 'rejected' },
+    verification_status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now, },
+  },
+  entity_type: {
+    type: String,
+    index: true,
+    default: null,
+  },
+  business_kyc: {
+    business_name: { type: String, default: null },
+    pan_card: { type: String, default: null },
+    pan_docs: { type: String, default: null },
+    gst_number: { type: String, default: null },
+    gst_number_status: { type: String, enum: ['rejected', 'verified'], default: 'rejected' },
+    gst_docs: { type: String, default: null },
+    msme_number: { type: String, default: null },
+    msme_docs: { type: String, default: null },
+    partnership_deed_docs: { type: String, default: null },
+    certificate_number: { type: String, default: null },
+    certificate_docs: { type: String, default: null },
+    moa_docs: { type: String, default: null },
+    aoa_docs: { type: String, default: null },
+    br_docs: { type: String, default: null },
+    cancel_cheque_docs: { type: String, default: null },
+    verification_status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now, },
+  },
+  bank_detail: {
+    account_name: { type: String, default: null },
+    account_number: { type: String, default: null },
+    ifsc_code: { type: String, default: null },
+    bank_name: { type: String, default: null },
+    bank_statement_docs: { type: String, default: null },
+    verification_status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now, },
+  },
+  number_of_partner: {
+    type: String,
+    default: null,
+  },
+  signature_detail: [{
+    name: { type: String, default: null },
+    mobile: { type: String, default: null },
+    email: { type: String, default: null },
+    aadhar_no: { type: String, default: null },
+    aadhar_docs: { type: String, default: null },
+    aadhar_status: { type: String, default: 'rejected' },
+    pan_card: { type: String, default: null },
+    pan_docs: { type: String, default: null },
+    pan_status: { type: String, default: 'rejected' },
+    bank_name: { type: String, default: null },
+    account_number: { type: String, default: null },
+    ifsc_code: { type: String, default: null },
+    bank_statement_docs: { type: String, default: null },
+    bank_status: { type: String, enum: ['rejected', 'verified'], default: 'rejected' },
+    verification_status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+    signatury: { type: String, default: false },
+    createdAt: { type: Date, default: Date.now, },
+  }],
+  aggrements: {
+    signature: { type: String, default: null },
+  },
+  kyc_status: {
     type: String,
     required: true,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending',
   },
-  personal_kyc: {
-        name: { type: String, required: true },
-        father_name: { type: String, required: true },
-        date_of_birth: { type: String, required: true },
-        zip_code: { type: String, required: true },
-        city: { type: String, required: true },
-        state: { type: String, required: true },
-        country: { type: String, required: true },
-        alt_no: { type: String },
-        aadhar_no: { type: String, required: true },
-        pan_no: { type: String, required: true },
-        aadhar_docs: { type: String, required: true },
-        pan_docs: { type: String, required: true },
-        bank_name: { type: String, required: true },
-        account_no: { type: String, required: true },
-        ifsc_code: { type: String, required: true },
-        confirm_account_no: { type: String, required: true },
-        bank_statement: { type: String, required: true },
-        verification_status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
-    },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-})
+},
+  { timestamps: true }
+)
 
-KYC_process.pre('save',function(next){
-    this.status = encrypt(this.status)
-    this.personal_kyc.name = encrypt(this.personal_kyc.name)
-    this.personal_kyc.father_name = encrypt(this.personal_kyc.father_name)
-    this.personal_kyc.date_of_birth = encrypt(this.personal_kyc.date_of_birth)
-    this.personal_kyc.zip_code = encrypt(this.personal_kyc.zip_code)
-    this.personal_kyc.city = encrypt(this.personal_kyc.city)
-    this.personal_kyc.state = encrypt(this.personal_kyc.state)
-    this.personal_kyc.country = encrypt(this.personal_kyc.country)
-    this.personal_kyc.alt_no = encrypt(this.personal_kyc.alt_no)
-    this.personal_kyc.aadhar_no = encrypt(this.personal_kyc.aadhar_no)
-    this.personal_kyc.pan_no = encrypt(this.personal_kyc.pan_no)
-    this.personal_kyc.aadhar_docs = encrypt(this.personal_kyc.aadhar_docs)
-    this.personal_kyc.pan_docs = encrypt(this.personal_kyc.pan_docs)
-    this.personal_kyc.bank_name = encrypt(this.personal_kyc.bank_name)
-    this.personal_kyc.account_no = encrypt(this.personal_kyc.account_no)
-    this.personal_kyc.ifsc_code = encrypt(this.personal_kyc.ifsc_code)
-    this.personal_kyc.confirm_account_no = encrypt(this.personal_kyc.confirm_account_no)
-    this.personal_kyc.bank_statement = encrypt(this.personal_kyc.bank_statement)
-    this.personal_kyc.verification_status = encrypt(this.personal_kyc.verification_status)
-    next();
-})
+
+
 
 export const personalKYC = mongoose.model('kyc_process', KYC_process)
