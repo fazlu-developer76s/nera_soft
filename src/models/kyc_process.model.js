@@ -60,7 +60,7 @@ const KYC_process = new mongoose.Schema({
   },
   bank_detail: {
     account_name: { type: String, default: null },
-    account_number: { type: String, default: null },
+    account_no: { type: String, default: null },
     ifsc_code: { type: String, default: null },
     bank_name: { type: String, default: null },
     bank_statement_docs: { type: String, default: null },
@@ -82,7 +82,7 @@ const KYC_process = new mongoose.Schema({
     pan_docs: { type: String, default: null },
     pan_status: { type: String, default: 'rejected' },
     bank_name: { type: String, default: null },
-    account_number: { type: String, default: null },
+    account_no: { type: String, default: null },
     ifsc_code: { type: String, default: null },
     bank_statement_docs: { type: String, default: null },
     bank_status: { type: String, enum: ['rejected', 'verified'], default: 'rejected' },
