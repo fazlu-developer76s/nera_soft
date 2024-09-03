@@ -7,16 +7,18 @@ import { GetAccessToken } from "../models/access_token.model.js";
 import { json } from "express";
 import { encrypt, decrypt } from "../utils/Encrypt_decrypt.js";
 
-const kyc_process = asyncHandler(async(req, res) => {
+const kyc_process = asyncHandler(async (req, res) => {
     
-    
+     return res.json(324324);
+    // const {  } = req.body;
 
 
 
-    
+
+
     const user_id = 12;
     const personal_kyc = {
-        name:"fazlu rehman", 
+        name: "fazlu rehman",
         father_name: "mohd talib",
         date_of_birth: "11/08/2003",
         zip_code: "110094",
@@ -36,23 +38,21 @@ const kyc_process = asyncHandler(async(req, res) => {
         verification_status: "pending",
     }
     const signature_detail = [{
-        name:"fazlu rehman"
-
-    },{
-        name:"fazlu rehman"
-
+        name: "fazlu rehman", mobile: "6453198653"
+    }, {
+        name: "fazlu rehman"
     }]
-    try{
+    try {
         let create_personal_detail = await personalKYC.create({
-           user_id,
-           personal_kyc,signature_detail
+            user_id,
+            personal_kyc, signature_detail
         })
-        res.status(200).json({ success:"personal detail save successfully"})
+        res.status(200).json({ success: "personal detail save successfully" })
 
-    }catch(err){
-        res.status(500).json({error : err.message});
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
- });
+});
 
 
- export { kyc_process }
+export { kyc_process }
